@@ -1,7 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 import keyboard
-import pyautogui
+from time import sleep
+from pynput.keyboard import Controller
+
+pynput_keyboard_controller = Controller()
 
 
 class HotkeyApp:
@@ -49,8 +52,11 @@ class HotkeyApp:
 
     def type_text(self):
         text = self.text_to_type.get()
-        if text.strip():
-            pyautogui.typewrite(text)
+        if text:
+            sleep(1)
+            for char in text:
+                pynput_keyboard_controller.type(char)
+                sleep(0.01)
         else:
             messagebox.showwarning("Empty Input", "The input text is empty!")
 
