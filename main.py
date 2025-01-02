@@ -1,8 +1,14 @@
-import tkinter as tk
+# import tkinter as tk
 from tkinter import messagebox
-import keyboard
+import platform
 import pyautogui
 
+# Check the OS and import the appropriate library
+if platform.system() == "Windows":
+    import keyboard
+else:
+    from pynput import keyboard as pynput_keyboard
+    from pynput.keyboard import Controller
 
 class HotkeyApp:
     def __init__(self, root):
@@ -10,7 +16,7 @@ class HotkeyApp:
         self.root.title("Hotkey Typing App")
 
         # Variables
-        self.hotkey = None
+        self.hotkey = "caps lock"  # Default hotkey
         self.text_to_type = tk.StringVar()
 
         # Input box
@@ -23,14 +29,22 @@ class HotkeyApp:
         self.set_hotkey_button.pack(pady=10)
 
         # Label to display the set hotkey
-        self.hotkey_label = tk.Label(root, text="Hotkey set: None", fg="blue")
+        self.hotkey_label = tk.Label(root, text=f"Hotkey set: {self.hotkey}", fg="blue")
         self.hotkey_label.pack(pady=5)
+
+        # Register the default hotkey
+        self.bind_hotkey()
 
         # Unregister hotkey on app close
         self.root.protocol("WM_DELETE_WINDOW", self.cleanup)
 
     def set_hotkey(self):
-        # Prompt user for hotkey
+        if platform.system() == "Windows":
+            self.set_hotkey_windows()
+        else:
+            self.set_hotkey_linux()
+
+    def set_hotkey_windows(self):
         def on_key(event):
             self.hotkey = event.name
             self.hotkey_label.config(text=f"Hotkey set: {self.hotkey}")
@@ -41,11 +55,39 @@ class HotkeyApp:
         messagebox.showinfo("Set Hotkey", "Press any key to set as hotkey.")
         keyboard.hook(on_key)  # Hook to capture key press
 
+    def set_hotkey_linux(self):
+        def on_press(key):
+            try:
+                self.hotkey = key.char or str(key)
+            except AttributeError:
+                self.hotkey = str(key)
+            self.hotkey_label.config(text=f"Hotkey set: {self.hotkey}")
+            listener.stop()
+            messagebox.showinfo("Hotkey Set", f"Hotkey '{self.hotkey}' has been set!")
+            self.bind_hotkey()
+
+        messagebox.showinfo("Set Hotkey", "Press any key to set as hotkey.")
+        listener = pynput_keyboard.Listener(on_press=on_press)
+        listener.start()
+        listener.join()
+
     def bind_hotkey(self):
-        # Unbind previous hotkey if it exists
-        keyboard.unhook_all_hotkeys()
-        if self.hotkey:
-            keyboard.add_hotkey(self.hotkey, self.type_text)
+        if platform.system() == "Windows":
+            keyboard.unhook_all_hotkeys()
+            if self.hotkey:
+                keyboard.add_hotkey(self.hotkey, self.type_text)
+        else:
+            self.keyboard_controller = Controller()
+            self.listener = pynput_keyboard.Listener(on_press=self.on_press)
+            self.listener.start()
+
+    def on_press(self, key):
+        try:
+            if key.char == self.hotkey or str(key) == self.hotkey:
+                self.type_text()
+        except AttributeError:
+            if str(key) == self.hotkey:
+                self.type_text()
 
     def type_text(self):
         text = self.text_to_type.get()
@@ -55,12 +97,16 @@ class HotkeyApp:
             messagebox.showwarning("Empty Input", "The input text is empty!")
 
     def cleanup(self):
-        # Unbind hotkeys on exit
-        keyboard.unhook_all()
+        if platform.system() == "Windows":
+            keyboard.unhook_all()
+        else:
+            if hasattr(self, 'listener'):
+                self.listener.stop()
         self.root.destroy()
 
 
 if __name__ == "__main__":
+    import tkinter as tk
     root = tk.Tk()
     app = HotkeyApp(root)
     root.mainloop()
