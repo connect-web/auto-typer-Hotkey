@@ -1,23 +1,20 @@
 # Auto-typer
 
-ideal for KVM's where paste is not an option but the host machine has access to a vnc client type connection.
+- Designed for Windows hosts Operating systems, Linux support is not yet added
+- Your KVM / Virtual Machine can be any distribution but this software runs on the machine 1 layer up and can paste into Virtual Machines by emulating a Keyboard device.
+
+#### Use cases
+Ideal for KVM's where paste is not an option but the host machine has access to a vnc client type connection.
 
 
-## Setup
+## Installation
 
-### Linux
+### Windows from pre compiled executable
+1) [Visit releases Page for Windows](https://github.com/connect-web/auto-typer-Hotkey/releases/tag/0.1)
+2) Download main.exe
+3) Click run and now you can refer to [Usage](#usage-screenshots)
 
-### Install pip
-```bash
-apt-get install python3-pip -y
-```
-
-- Requires: Python3 installed and pip
-```bash
-pip install -r requirements.txt
-```
-
-### Windows
+### Windows from source
 
 1) Download any [Python3 version](https://www.python.org/downloads/)
 - Ensure you check the option "Add Python to PATH" during installation.
@@ -32,25 +29,24 @@ You should expect the python version to output if this is not correct python did
 ```cmd
 python -m ensurepip 
 ```
-4) install required packages
+
+4) Download auto-typer files as a .ZIP and extract to folder
+5) Navigate to /windows/ directory, You will see main.py and requirements.txt in this directory.
+6) Open Command prompt or powershell here and run the following:
+7) install required packages
 ```cmd
 pip install -r requirements.txt
 ```
 
+- The Windows installation is now complete, you can now run it
 
+## Running
 
-
-
-# Usage
 ## Running on Windows from source
 ```cmd
 python main.py
 ```
 
-## Running on Linux from source
-```shell
-python3 main.py
-```
 
 ## Hotkey Program Usage
 
