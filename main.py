@@ -2,6 +2,7 @@
 from tkinter import messagebox
 import platform
 import pyautogui
+import threading
 
 # Check the OS and import the appropriate library
 if platform.system() == "Windows":
@@ -62,14 +63,13 @@ class HotkeyApp:
             except AttributeError:
                 self.hotkey = str(key)
             self.hotkey_label.config(text=f"Hotkey set: {self.hotkey}")
-            listener.stop()
+            self.listener.stop()
             messagebox.showinfo("Hotkey Set", f"Hotkey '{self.hotkey}' has been set!")
             self.bind_hotkey()
 
         messagebox.showinfo("Set Hotkey", "Press any key to set as hotkey.")
-        listener = pynput_keyboard.Listener(on_press=on_press)
-        listener.start()
-        listener.join()
+        self.listener = pynput_keyboard.Listener(on_press=on_press)
+        self.listener.start()
 
     def bind_hotkey(self):
         if platform.system() == "Windows":
@@ -77,9 +77,16 @@ class HotkeyApp:
             if self.hotkey:
                 keyboard.add_hotkey(self.hotkey, self.type_text)
         else:
-            self.keyboard_controller = Controller()
-            self.listener = pynput_keyboard.Listener(on_press=self.on_press)
-            self.listener.start()
+            self.start_pynput_listener()
+
+    def start_pynput_listener(self):
+        def listen_for_hotkey():
+            with pynput_keyboard.Listener(on_press=self.on_press) as listener:
+                listener.join()
+
+        # Run the listener in a separate thread to avoid freezing the GUI
+        thread = threading.Thread(target=listen_for_hotkey, daemon=True)
+        thread.start()
 
     def on_press(self, key):
         try:
@@ -100,7 +107,7 @@ class HotkeyApp:
         if platform.system() == "Windows":
             keyboard.unhook_all()
         else:
-            if hasattr(self, 'listener'):
+            if hasattr(self, 'listener') and self.listener:
                 self.listener.stop()
         self.root.destroy()
 
